@@ -47,7 +47,7 @@ uploaded_files = st.sidebar.file_uploader(
 
 # User input for the year
 year_input = st.sidebar.text_input(
-    "데이터의 년도를 입력하세요 (예: 2024)", 
+    "계획년도를 입력하세요 (예: 2026)", 
     pd.Timestamp.now().year
 )
 
