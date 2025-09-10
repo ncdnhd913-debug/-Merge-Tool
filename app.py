@@ -50,78 +50,88 @@ if uploaded_file is not None:
             # Find all columns that contain '월' to identify month columns
             month_cols = [col for col in df_original.columns if "월" in str(col)]
 
-            # Melt the DataFrame to long format to handle month columns
-            # This turns the month columns into rows, with a new column for the month name and its value
-            df_melted = pd.melt(
-                df_original,
-                id_vars=["비용센터코드", "계정코드"],
-                value_vars=month_cols,
-                var_name="월",
-                value_name="고정비금액"
-            )
-
-            # --- Fix: Ensure the '월' column is treated as a string before using .str accessor ---
-            # Fill any potential NaN values with an empty string and then convert to string
-            df_melted['월'] = df_melted['월'].fillna('').astype(str)
-
-            # Use a custom function to extract the month number safely
-            def extract_month_number(month_string):
-                try:
-                    # Find all digits in the string
-                    digits = ''.join(filter(str.isdigit, month_string))
-                    # Convert to int and format with leading zero (e.g., '1' -> '01')
-                    return str(int(digits)).zfill(2)
-                except (ValueError, TypeError):
-                    return '' # Return an empty string if conversion fails
-
-            df_melted["월_str"] = df_melted["월"].apply(extract_month_number)
-            # ----------------------------------------------------------------------------------
-
-            # Drop rows where '고정비금액' is NaN
-            df_melted.dropna(subset=['고정비금액'], inplace=True)
-
-            # Create the '계획년월' column in YYYYMM format
-            if year_input:
-                df_melted["계획년월"] = str(year_input) + df_melted["월_str"]
+            # --- Fix: Check if month columns are found before melting ---
+            if not month_cols:
+                st.error("엑셀 파일에서 '월'이 포함된 컬럼을 찾을 수 없습니다. 월별 데이터 컬럼의 제목이 올바른지(예: '1월', '2월' 등) 확인해 주세요.")
+                st.info("원본 데이터의 컬럼명을 수정하여 다시 시도해 주세요.")
             else:
-                st.warning("년도가 입력되지 않아 '계획년월' 컬럼을 생성할 수 없습니다.")
-                df_melted["계획년월"] = ""
+                # Melt the DataFrame to long format to handle month columns
+                # This turns the month columns into rows, with a new column for the month name and its value
+                df_melted = pd.melt(
+                    df_original,
+                    id_vars=["비용센터코드", "계정코드"],
+                    value_vars=month_cols,
+                    var_name="월",
+                    value_name="고정비금액"
+                )
 
-            # Add required columns
-            df_melted["차대구분코드"] = "1"
-            df_melted["원가요소코드"] = df_melted["계정코드"]
+                # --- Fix: Ensure the '월' column is treated as a string before using .str accessor ---
+                # Fill any potential NaN values with an empty string and then convert to string
+                df_melted['월'] = df_melted['월'].fillna('').astype(str)
 
-            # Select and reorder the final columns
-            df_final = df_melted[[
-                "계획년월",
-                "비용센터코드",
-                "차대구분코드",
-                "원가요소코드",
-                "고정비금액"
-            ]]
+                # Use a custom function to extract the month number safely
+                def extract_month_number(month_string):
+                    try:
+                        # Find all digits in the string
+                        digits = ''.join(filter(str.isdigit, month_string))
+                        # Convert to int and format with leading zero (e.g., '1' -> '01')
+                        return str(int(digits)).zfill(2)
+                    except (ValueError, TypeError):
+                        return '' # Return an empty string if conversion fails
 
-            # Convert numeric columns to string type for consistency with requirement
-            df_final['계획년월'] = df_final['계획년월'].astype(str)
-            df_final['비용센터코드'] = df_final['비용센터코드'].astype(str)
-            df_final['차대구분코드'] = df_final['차대구분코드'].astype(str)
-            df_final['원가요소코드'] = df_final['원가요소코드'].astype(str)
+                df_melted["월_str"] = df_melted["월"].apply(extract_month_number)
+                # ----------------------------------------------------------------------------------
 
-            st.subheader("변환된 데이터 미리보기")
-            st.dataframe(df_final)
+                # Drop rows where '고정비금액' is NaN
+                df_melted.dropna(subset=['고정비금액'], inplace=True)
 
-            # Create an in-memory Excel file for download
-            buffer = io.BytesIO()
-            df_final.to_excel(buffer, index=False, engine="openpyxl")
-            buffer.seek(0)
+                # Create the '계획년월' column in YYYYMM format
+                if year_input:
+                    df_melted["계획년월"] = str(year_input) + df_melted["월_str"]
+                else:
+                    st.warning("년도가 입력되지 않아 '계획년월' 컬럼을 생성할 수 없습니다.")
+                    df_melted["계획년월"] = ""
 
-            # Download button for the new Excel file
-            st.download_button(
-                label="결과 다운로드",
-                data=buffer,
-                file_name="경비예산_병합_결과.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                help="변환된 데이터를 새로운 엑셀 파일로 다운로드합니다."
-            )
+                # Add required columns
+                df_melted["차대구분코드"] = "1"
+                df_melted["원가요소코드"] = df_melted["계정코드"]
+
+                # Select and reorder the final columns
+                df_final = df_melted[[
+                    "계획년월",
+                    "비용센터코드",
+                    "차대구분코드",
+                    "원가요소코드",
+                    "고정비금액"
+                ]]
+
+                # Convert numeric columns to string type for consistency with requirement
+                df_final['계획년월'] = df_final['계획년월'].astype(str)
+                df_final['비용센터코드'] = df_final['비용센터코드'].astype(str)
+                df_final['차대구분코드'] = df_final['차대구분코드'].astype(str)
+                df_final['원가요소코드'] = df_final['원가요소코드'].astype(str)
+                
+                # --- Fix: Check if the final dataframe is not empty before displaying ---
+                if not df_final.empty:
+                    st.subheader("변환된 데이터 미리보기")
+                    st.dataframe(df_final)
+
+                    # Create an in-memory Excel file for download
+                    buffer = io.BytesIO()
+                    df_final.to_excel(buffer, index=False, engine="openpyxl")
+                    buffer.seek(0)
+
+                    # Download button for the new Excel file
+                    st.download_button(
+                        label="결과 다운로드",
+                        data=buffer,
+                        file_name="경비예산_병합_결과.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        help="변환된 데이터를 새로운 엑셀 파일로 다운로드합니다."
+                    )
+                else:
+                    st.info("변환할 데이터가 없습니다. 원본 데이터에 유효한 월별 값이 포함되어 있는지 확인해 주세요.")
+
 
     except Exception as e:
         st.error(f"파일 처리 중 오류가 발생했습니다: {e}")
