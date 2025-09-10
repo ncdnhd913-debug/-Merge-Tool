@@ -10,7 +10,7 @@ st.set_page_config(
 
 # App title and description
 st.title("💸 경비예산 Merge Tool")
-st.markdown("왼쪽 사이드바에서 엑셀 파일을 업로드하면, 필요한 데이터를 추출하여 새로운 형식으로 변환해 드립니다.")
+st.markdown("왼쪽 사이드바에서 엑셀 파일들을 업로드하면, 필요한 데이터를 추출하여 새로운 형식으로 변환해 드립니다.")
 
 # Sidebar for multiple file upload and year input
 st.sidebar.header("엑셀 파일 업로드")
@@ -33,7 +33,6 @@ if uploaded_files:
 
     # Process each uploaded file
     for uploaded_file in uploaded_files:
-        st.subheader(f"'{uploaded_file.name}' 파일 처리 중...")
         try:
             # Read the uploaded Excel file, skipping to the 6th row for the header
             df_original = pd.read_excel(uploaded_file, header=5)
