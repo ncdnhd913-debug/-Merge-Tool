@@ -9,6 +9,12 @@ st.markdown("""
         padding-left: 1rem;
         padding-right: 1rem;
     }
+    h1, h2, h3 {
+        text-align: left;
+    }
+    div[data-testid="stDataFrameResizable"] {
+        text-align: left !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
