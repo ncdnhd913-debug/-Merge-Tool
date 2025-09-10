@@ -52,6 +52,10 @@ if uploaded_file is not None:
                 value_name="고정비금액"
             )
 
+            # --- Fix: Ensure the '월' column is treated as a string before using .str accessor ---
+            df_melted['월'] = df_melted['월'].astype(str)
+            # ----------------------------------------------------------------------------------
+
             # Drop rows where '고정비금액' is NaN
             df_melted.dropna(subset=['고정비금액'], inplace=True)
 
@@ -60,7 +64,7 @@ if uploaded_file is not None:
 
             # Create the '계획년월' column in YYYYMM format
             if year_input:
-                df_melted["계획년월"] = year_input + df_melted["월_str"]
+                df_melted["계획년월"] = str(year_input) + df_melted["월_str"]
             else:
                 st.warning("년도가 입력되지 않아 '계획년월' 컬럼을 생성할 수 없습니다.")
                 df_melted["계획년월"] = ""
