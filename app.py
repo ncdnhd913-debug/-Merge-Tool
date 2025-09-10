@@ -68,7 +68,7 @@ if uploaded_files:
                 st.error("엑셀 파일에서 월별 데이터를 찾을 수 없습니다. 월별 데이터 컬럼의 제목이 '1', '2' 또는 '1월', '2월' 등과 같은지 확인해 주세요.")
                 continue  # Skip to the next file
 
-            # --- 수정된 부분: NaN 값을 0으로 채우고 정수형으로 변환 ---
+            # --- NaN 값을 0으로 채우고 정수형으로 변환 ---
             df_original[month_cols] = df_original[month_cols].round(0).fillna(0).astype(int)
 
             # Melt the DataFrame to long format
@@ -140,14 +140,32 @@ if uploaded_files:
             st.subheader("최종 병합된 데이터 미리보기")
             st.dataframe(df_combined)
 
-            # Create an in-memory Excel file for download
+            # Create an in-memory Excel file with fixed column width
             buffer = io.BytesIO()
-            df_combined.to_excel(buffer, index=False, engine="openpyxl")
+            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                # Write the DataFrame to a worksheet
+                df_combined.to_excel(writer, index=False, sheet_name='ERP10 Upload')
+
+                # Get the worksheet object and set column widths
+                worksheet = writer.sheets['ERP10 Upload']
+                for column in worksheet.columns:
+                    max_length = 0
+                    column = [cell for cell in column]
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = (max_length + 2) if max_length > 15 else 15
+                    worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+            # Go to the beginning of the buffer
             buffer.seek(0)
 
-            # Download button for the new Excel file
+            # Download button for the new Excel file with the new title
             st.download_button(
-                label="결과 다운로드",
+                label="최종 ERP10 업로드 양식 다운로드",
                 data=buffer,
                 file_name="경비예산_병합_결과.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
