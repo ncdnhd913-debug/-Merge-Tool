@@ -63,6 +63,9 @@ if uploaded_file is not None:
                 st.error("엑셀 파일에서 월별 데이터를 찾을 수 없습니다. 월별 데이터 컬럼의 제목이 '1', '2' 또는 '1월', '2월' 등과 같은지 확인해 주세요.")
                 st.info("원본 데이터의 컬럼명을 수정하거나 올바른 형식의 파일을 업로드하여 다시 시도해 주세요.")
             else:
+                # 필터링: 비용센터코드에서 "합 계" 데이터 제외
+                df_original = df_original[df_original['비용센터코드'] != '합 계']
+
                 # Melt the DataFrame to long format to handle month columns
                 # This turns the month columns into rows, with a new column for the month name and its value
                 df_melted = pd.melt(
@@ -112,12 +115,18 @@ if uploaded_file is not None:
                     "원가요소코드",
                     "고정비금액"
                 ]]
+                
+                # 변환: 원가요소코드를 정수형으로 변환
+                try:
+                    df_final['원가요소코드'] = df_final['원가요소코드'].astype(float).astype(int)
+                except ValueError:
+                    st.error("원가요소코드에 숫자가 아닌 값이 포함되어 있어 정수형으로 변환할 수 없습니다.")
+
 
                 # Convert numeric columns to string type for consistency with requirement
                 df_final['계획년월'] = df_final['계획년월'].astype(str)
                 df_final['비용센터코드'] = df_final['비용센터코드'].astype(str)
                 df_final['차대구분코드'] = df_final['차대구분코드'].astype(str)
-                df_final['원가요소코드'] = df_final['원가요소코드'].astype(str)
                 
                 # --- Fix: Check if the final dataframe is not empty before displaying ---
                 if not df_final.empty:
