@@ -53,14 +53,24 @@ if uploaded_file is not None:
             )
 
             # --- Fix: Ensure the '월' column is treated as a string before using .str accessor ---
-            df_melted['월'] = df_melted['월'].astype(str)
+            # Fill any potential NaN values with an empty string and then convert to string
+            df_melted['월'] = df_melted['월'].fillna('').astype(str)
+
+            # Use a custom function to extract the month number safely
+            def extract_month_number(month_string):
+                try:
+                    # Find all digits in the string
+                    digits = ''.join(filter(str.isdigit, month_string))
+                    # Convert to int and format with leading zero (e.g., '1' -> '01')
+                    return str(int(digits)).zfill(2)
+                except (ValueError, TypeError):
+                    return '' # Return an empty string if conversion fails
+
+            df_melted["월_str"] = df_melted["월"].apply(extract_month_number)
             # ----------------------------------------------------------------------------------
 
             # Drop rows where '고정비금액' is NaN
             df_melted.dropna(subset=['고정비금액'], inplace=True)
-
-            # Convert month names to two-digit month strings (e.g., '1월' -> '01')
-            df_melted["월_str"] = df_melted["월"].str.extract(r"(\d+)").astype(int).astype(str).str.zfill(2)
 
             # Create the '계획년월' column in YYYYMM format
             if year_input:
