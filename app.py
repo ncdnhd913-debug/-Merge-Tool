@@ -9,11 +9,17 @@ st.markdown("""
         padding-left: 1rem;
         padding-right: 1rem;
     }
-    h1, h2, h3 {
-        text-align: left;
-    }
-    div[data-testid="stDataFrameResizable"] {
+    /* Align all headings and markdown text to the left */
+    h1, h2, h3, h4, h5, h6, p, div.st-emotion-cache-16txt53 {
         text-align: left !important;
+    }
+    /* Align the main content block to the left */
+    div[data-testid="stVerticalBlock"] {
+        align-items: flex-start;
+    }
+    /* Ensure dataframes are left-aligned */
+    div[data-testid="stDataFrameResizable"] {
+        margin: 0 auto;
     }
 </style>
 """, unsafe_allow_html=True)
