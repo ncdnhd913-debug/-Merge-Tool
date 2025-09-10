@@ -92,6 +92,9 @@ if uploaded_files:
 
             # Drop rows where '고정비금액' is NaN
             df_melted.dropna(subset=['고정비금액'], inplace=True)
+            
+            # Round '고정비금액' to the nearest whole number and convert to integer
+            df_melted['고정비금액'] = df_melted['고정비금액'].round(0).astype(int)
 
             # Create the '계획년월' column in YYYYMM format
             if year_input:
