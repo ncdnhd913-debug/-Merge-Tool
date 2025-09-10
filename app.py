@@ -2,6 +2,17 @@ import streamlit as st
 import pandas as pd
 import io
 
+# Custom CSS to align content to the left and remove default padding
+st.markdown("""
+<style>
+    .stApp {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 # Set page title and icon
 st.set_page_config(
     page_title="경비예산 Merge Tool",
@@ -10,7 +21,7 @@ st.set_page_config(
 
 # App title and description
 st.title("💸 경비예산 Merge Tool")
-st.markdown("왼쪽 사이드바에서 엑셀 파일들을 업로드하면, 필요한 데이터를 추출하여 새로운 형식으로 변환해 드립니다.")
+st.markdown("왼쪽 사이드바에서 엑셀 파일들을 업로드하면, 필요한 데이터를 추출하여 ERP10 업로드 형식으로 변환해 드립니다.")
 
 # Sidebar for multiple file upload and year input
 st.sidebar.header("엑셀 파일 업로드")
