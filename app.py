@@ -68,6 +68,10 @@ if uploaded_files:
                 st.error("엑셀 파일에서 월별 데이터를 찾을 수 없습니다. 월별 데이터 컬럼의 제목이 '1', '2' 또는 '1월', '2월' 등과 같은지 확인해 주세요.")
                 continue  # Skip to the next file
 
+            # Round the month columns to the nearest whole number and convert to integer
+            # This handles the user's request to round the values "from the start".
+            df_original[month_cols] = df_original[month_cols].round(0).astype(int)
+
             # Melt the DataFrame to long format
             df_melted = pd.melt(
                 df_original,
@@ -92,9 +96,6 @@ if uploaded_files:
 
             # Drop rows where '고정비금액' is NaN
             df_melted.dropna(subset=['고정비금액'], inplace=True)
-            
-            # Round '고정비금액' to the nearest whole number and convert to integer
-            df_melted['고정비금액'] = df_melted['고정비금액'].round(0).astype(int)
 
             # Create the '계획년월' column in YYYYMM format
             if year_input:
