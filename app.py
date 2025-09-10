@@ -47,13 +47,21 @@ if uploaded_file is not None:
         if not all(col in df_original.columns for col in required_cols):
             st.error("업로드된 파일에 '비용센터코드' 또는 '계정코드' 컬럼이 없습니다. 올바른 형식의 파일을 업로드해 주세요.")
         else:
-            # Find all columns that contain '월' to identify month columns
-            month_cols = [col for col in df_original.columns if "월" in str(col)]
+            # --- New Fix: Find all columns that are either '월' or a number from 1 to 12 ---
+            month_cols = []
+            for col in df_original.columns:
+                try:
+                    # Check if the column name can be converted to an integer and is a valid month
+                    if 1 <= int(col) <= 12:
+                        month_cols.append(col)
+                except ValueError:
+                    # If conversion fails, check if it contains '월'
+                    if "월" in str(col):
+                        month_cols.append(col)
 
-            # --- Fix: Check if month columns are found before melting ---
             if not month_cols:
-                st.error("엑셀 파일에서 '월'이 포함된 컬럼을 찾을 수 없습니다. 월별 데이터 컬럼의 제목이 올바른지(예: '1월', '2월' 등) 확인해 주세요.")
-                st.info("원본 데이터의 컬럼명을 수정하여 다시 시도해 주세요.")
+                st.error("엑셀 파일에서 월별 데이터를 찾을 수 없습니다. 월별 데이터 컬럼의 제목이 '1', '2' 또는 '1월', '2월' 등과 같은지 확인해 주세요.")
+                st.info("원본 데이터의 컬럼명을 수정하거나 올바른 형식의 파일을 업로드하여 다시 시도해 주세요.")
             else:
                 # Melt the DataFrame to long format to handle month columns
                 # This turns the month columns into rows, with a new column for the month name and its value
