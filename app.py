@@ -120,6 +120,9 @@ if uploaded_files:
             # Drop rows where '고정비금액' is NaN
             # NOTE: This step is less critical now due to fillna, but still good practice.
             df_melted.dropna(subset=['고정비금액'], inplace=True)
+            
+            # Exclude rows where '고정비금액' is 0
+            df_melted = df_melted[df_melted['고정비금액'] != 0]
 
             # Create the '계획년월' column in YYYYMM format
             if year_input:
